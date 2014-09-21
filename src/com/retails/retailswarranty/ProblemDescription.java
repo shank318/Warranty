@@ -3,6 +3,8 @@ package com.retails.retailswarranty;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.Header;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -78,7 +81,19 @@ public class ProblemDescription extends BaseActivity{
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
 
-				if(pd.getText().toString().trim().length()>0){
+				final String description = pd.getText().toString();
+
+				if(description.trim().length()>0){
+					tMap.put("description", description);
+					try {
+						uplaodTransaction();
+
+						finish();
+						Manual.fa.finish();
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 
 				}else{
 					pd.setError("Please write the problem description");
@@ -182,8 +197,8 @@ public class ProblemDescription extends BaseActivity{
 
 
 			for(int i=0;i<filePathColumn.size();i++){
-				
-				
+
+
 
 				listviewlist.add(filePathColumn.get(i));
 
@@ -314,10 +329,11 @@ public class ProblemDescription extends BaseActivity{
 
 
 
+
 	}
-	
-	
-	
+
+
+
 	void uplaodTransaction() throws JSONException{
 
 		RequestParams params = new RequestParams();
@@ -325,13 +341,35 @@ public class ProblemDescription extends BaseActivity{
 		constructArray();
 
 		Log.e("DETAILS", tMap.get("serialno")+"   "+tMap.get("description")+"  "+tMap.get("customername"));
-		params.put("sync_master",tMap.get("serialno"));
-		params.put("sync_photo",tMap.get("customername"));
-		params.put("sync_checklist",tMap.get("customerno"));
-		params.put("sync_master",tMap.get("city"));
-		params.put("sync_photo",tMap.get("showroom"));
-		params.put("sync_checklist",tMap.get("description"));
+		params.put("prod_sr_no",tMap.get("serialno"));
+		params.put("contact_person",tMap.get("customername"));
+		params.put("contact_no",tMap.get("customerno"));
+		params.put("showroom_city",tMap.get("city"));
+		params.put("showroom_name",tMap.get("showroom"));
+		params.put("cust_feedback",tMap.get("description"));
 
+		if(!images.equals("")){
+		
+		String[] img = images.split(",");
+		int len = img.length;
+		params.put("no_of_images",len);
+		Log.e("IMAGES", len+" "+images);
+
+		for(int i =0;i<img.length;i++){
+
+			Log.e("IMAGES", img[i]+"  "+len);
+			File file = new File(img[i]);
+
+			try {
+				params.put("pro_img_"+i,file );
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		}else{
+			params.put("no_of_images",0);
+		}
 
 
 		CallNetwork.post(CallNetwork.SYNC_URL, params, new JsonHttpResponseHandler(){
@@ -350,15 +388,30 @@ public class ProblemDescription extends BaseActivity{
 			public void onFailure(int statusCode, Header[] headers,
 					String responseString, Throwable throwable) {
 				// TODO Auto-generated method stub
-				Log.e("ONFALIURE", responseString+"aaaaaa");
 
+
+				Log.e("ONFALIURE", responseString+"aaaaaa");
 				AppConstants.flag=0;
-				mBuilder.setAutoCancel(true);
-				mBuilder.setContentTitle("Failed to uplaod");
-				mBuilder.setContentText("Please check the internet connection")
-				// Removes the progress bar
-				.setProgress(0,0,false);
-				mNotifyManager.notify(0, mBuilder.build());
+
+				if(throwable.getCause() instanceof SocketTimeoutException){
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Time out connection error");
+					mBuilder.setContentText("Your internet seems soo slow")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+				}else{
+
+
+
+
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Failed to uplaod");
+					mBuilder.setContentText("Please check the internet connection")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+				}
 
 				addTransactions(tMap);
 
@@ -371,7 +424,7 @@ public class ProblemDescription extends BaseActivity{
 				// If the response is JSONObject instead of expected JSONArray
 				AppConstants.flag=0;
 				Log.e("SUCCESS", response+"");
-				
+
 				String result="";
 
 				try{
@@ -382,33 +435,33 @@ public class ProblemDescription extends BaseActivity{
 				}catch(Exception e){
 					e.printStackTrace();
 				}
-			
+
 
 				if(result.equals("true")){
-					
-					
+
+
 					mBuilder.setAutoCancel(true);
 					mBuilder.setContentTitle("Successfully uploaded");
 					mBuilder.setContentText("Done")
 					// Removes the progress bar
 					.setProgress(0,0,false);
 					mNotifyManager.notify(0, mBuilder.build());
-					
-					
+
+
 				}else{
-				
+
 					addTransactions(tMap);
-				mBuilder.setAutoCancel(true);
-				mBuilder.setContentTitle("Failed to upload");
-				mBuilder.setContentText("Please check your internet connection")
-				// Removes the progress bar
-				.setProgress(0,0,false);
-				mNotifyManager.notify(0, mBuilder.build());
-				
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Failed to upload");
+					mBuilder.setContentText("Please check your internet connection")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+
 				}
 
 
-				
+
 
 			}
 
@@ -418,7 +471,10 @@ public class ProblemDescription extends BaseActivity{
 
 				AppConstants.flag=1;
 
-
+				mBuilder
+				.setContentTitle("Uploading....")                  
+				.setSmallIcon(R.drawable.ic_launcher)
+				.setAutoCancel(true);
 			}
 
 
@@ -428,19 +484,28 @@ public class ProblemDescription extends BaseActivity{
 			public void onFailure(int statusCode, Header[] headers,
 					Throwable throwable, JSONObject errorResponse) {
 				// TODO Auto-generated method stub
+				Log.e("FALIURE", errorResponse+"");
 				AppConstants.flag=0;
 
-				Toast toast =Toast.makeText(getApplicationContext(), "Something went wrong", Toast.LENGTH_LONG);
-				toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-				toast.show();
+				if(throwable.getCause() instanceof ConnectTimeoutException){
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Time out connection error");
+					mBuilder.setContentText("Your internet seems soo slow")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+				}else{
 
-				Log.e("FALIURE", errorResponse+"");
-				mBuilder.setAutoCancel(true);
-				mBuilder.setContentTitle("Failed to uplaod");
-				mBuilder.setContentText("Please check the internet connection")
-				// Removes the progress bar
-				.setProgress(0,0,false);
-				mNotifyManager.notify(0, mBuilder.build());
+
+
+
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Failed to uplaod");
+					mBuilder.setContentText("Please check the internet connection")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+				}
 
 				addTransactions(tMap);
 			}
@@ -451,9 +516,9 @@ public class ProblemDescription extends BaseActivity{
 
 		});
 	}
-	
-	
-	
-	
+
+
+
+
 
 }

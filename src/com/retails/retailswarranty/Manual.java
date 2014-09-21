@@ -18,10 +18,11 @@ public class Manual extends BaseActivity {
 
 	EditText serialNo, SN, city, CP,CN;
 	Button next;
-
+  static Activity fa;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
+		fa=this;
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.form);

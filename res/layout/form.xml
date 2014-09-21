@@ -8,7 +8,7 @@
     <EditText
         android:id="@+id/serial_no"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginTop="40dp"
@@ -25,7 +25,7 @@
     <EditText
         android:id="@+id/room_name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/serial_no"
         android:layout_marginLeft="20dp"
@@ -40,7 +40,7 @@
     <EditText
         android:id="@+id/city"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_below="@+id/room_name"
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="20dp"
@@ -55,7 +55,7 @@
     <EditText
         android:id="@+id/contact_person"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_below="@+id/city"
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="20dp"
@@ -70,7 +70,7 @@
     <EditText
         android:id="@+id/contact_no"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/contact_person"
         android:layout_marginLeft="20dp"

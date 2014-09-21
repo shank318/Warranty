@@ -52,35 +52,11 @@ public class BaseActivity extends Activity{
 				(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		mBuilder = new NotificationCompat.Builder(this);
 
-		mBuilder
-		.setContentTitle("Uploading....")                  
-		.setSmallIcon(R.drawable.ic_launcher)
-		.setAutoCancel(true);
-
-
 		
-		try {
-			ViewConfiguration config = ViewConfiguration.get(this);
-			Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
-			if(menuKeyField != null) {
-				menuKeyField.setAccessible(true);
-				menuKeyField.setBoolean(config, false);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
 
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.main, menu);
-
-		return super.onCreateOptionsMenu(menu);
-
-	}	
 
 	
 

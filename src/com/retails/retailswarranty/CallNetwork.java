@@ -14,20 +14,18 @@ import com.loopj.android.http.RequestParams;
 
 public class CallNetwork {
 
-	public static final String LOGIN_URL = "http://49.50.76.122/Retails/Android/login.php";
-
-//	private static final String BASE_URL = "http://49.50.76.122/Retails/Android/upload.php";
-	public static final String SYNC_URL = "http://49.50.76.122/Retails/Android/appSync.php";
+	
+	public static final String SYNC_URL = "http://49.50.76.122/Retails/Android/appWaranty.php";
 	
 	private static AsyncHttpClient client = new AsyncHttpClient();
-
+    
 
 
 	public static void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
 	
-		
+		Log.e("Executing", url+"");
 		client.post(url, params, responseHandler);
-		Log.e("URL", client+"");
+		
 
 	}
 

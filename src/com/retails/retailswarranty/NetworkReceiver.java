@@ -1,9 +1,12 @@
 package com.retails.retailswarranty;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.http.Header;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,7 +46,7 @@ public class NetworkReceiver extends BroadcastReceiver {
 		// Shared Preferences
 		mSharedPreferences= context.getSharedPreferences(AppConstants.KEY, 0);
 		e = mSharedPreferences.edit();
-	
+
 
 		mNotifyManager =
 				(NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -54,11 +57,6 @@ public class NetworkReceiver extends BroadcastReceiver {
 		.setSmallIcon(R.drawable.ic_launcher)
 		.setAutoCancel(true);
 
-		if(mSharedPreferences.getString("USERID", "").equals("")){
-			return ;
-		}
-		
-		
 		
 
 
@@ -67,10 +65,10 @@ public class NetworkReceiver extends BroadcastReceiver {
 		Log.e("DEBUG", "Onreceive..");
 
 		if(cd.isConnectingToInternet()){
-			
+
 			temp = getFailedTransactions();
 
-			if(temp.size()>0){
+			if(temp.size()>0 && AppConstants.flag==0){
 				try {
 					uplaodTransaction(context);
 				} catch (JSONException e1) {
@@ -78,7 +76,7 @@ public class NetworkReceiver extends BroadcastReceiver {
 					e1.printStackTrace();
 				}
 			}
-			
+
 			Toast.makeText(context, "INTERNET CONNECTED", Toast.LENGTH_LONG).show();
 		}else{
 			Toast.makeText(context, "NOT CONNECTED", Toast.LENGTH_LONG).show();
@@ -95,11 +93,39 @@ public class NetworkReceiver extends BroadcastReceiver {
 
 		RequestParams params = new RequestParams();
 
-		Log.e("DETAILS", temp.get(0).get("master")+"   "+temp.get(0).get("photod")+"  "+temp.get(0).get("checklist"));
-		params.put("sync_master",temp.get(0).get("master"));
-		params.put("sync_photo",temp.get(0).get("photod"));
-		params.put("sync_checklist",temp.get(0).get("checklist"));
+		Log.e("DETAILS", temp.get(0).get("serialno")+"   "+temp.get(0).get("customername")+"  "+temp.get(0).get("customerno"));
 
+
+
+		params.put("prod_sr_no",temp.get(0).get("serialno"));
+		params.put("contact_person",temp.get(0).get("customername"));
+		params.put("contact_no",temp.get(0).get("customerno"));
+		params.put("showroom_city",temp.get(0).get("city"));
+		params.put("showroom_name",temp.get(0).get("showroom"));
+		params.put("cust_feedback",temp.get(0).get("description"));
+
+		String images = temp.get(0).get("images");
+		
+		
+		if(!images.equals("")){
+		String[] img = images.split(",");
+		params.put("no_of_images",img.length);
+
+		for(int i =0;i<img.length;i++){
+
+			Log.e("DETAILS", img[i]);
+			File file = new File(img[i]);
+
+			try {
+				params.put("pro_img_"+i,file );
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		}else{
+			params.put("no_of_images",0);
+		}
 
 
 		CallNetwork.post(CallNetwork.SYNC_URL, params, new JsonHttpResponseHandler(){
@@ -121,71 +147,88 @@ public class NetworkReceiver extends BroadcastReceiver {
 				Log.e("ONFALIURE", responseString+"aaaaaa");
 
 
-				mBuilder.setAutoCancel(true);
-				mBuilder.setContentTitle("Failed to uplaod");
-				mBuilder.setContentText("Please check the internet connection")
-				// Removes the progress bar
-				.setProgress(0,0,false);
-				mNotifyManager.notify(0, mBuilder.build());
+				if(throwable.getCause() instanceof ConnectTimeoutException){
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Time out connection error");
+					mBuilder.setContentText("Your internet seems soo slow")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+				}else{
 
-				AppConstants.flag=0;
 
-			}
 
-			@Override
-			public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-				// If the response is JSONObject instead of expected JSONArray
 
-				mBuilder.setAutoCancel(true);
-				mBuilder.setContentTitle("Successfully uploaded");
-				mBuilder.setContentText("Done")
-				// Removes the progress bar
-				.setProgress(0,0,false);
-				mNotifyManager.notify(0, mBuilder.build());
-				Log.e("SUCCESS", response+"");
-
-				AppConstants.flag=0;
-				temp.remove(0);
-				Log.e("DEBUG", "Failed Transaction left"+temp.size());
-				
-				deleteAndAddTransactions(temp);
-				if(temp.size()>0){
-					try {
-						uplaodTransaction(context);
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Failed to uplaod");
+					mBuilder.setContentText("Please check the internet connection")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
 				}
+
+				AppConstants.flag=0;
+
 			}
+
+			
 
 			@Override
 			public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
 				// If the response is JSONObject instead of expected JSONArray
 
-				Log.e("SUCCESS", response+"");
-				mBuilder.setAutoCancel(true);
-				mBuilder.setContentTitle("Successfully uploaded");
-				mBuilder.setContentText("Done")
-				// Removes the progress bar
-				.setProgress(0,0,false);
-				mNotifyManager.notify(0, mBuilder.build());
-				Log.e("SUCCESS", response+"");
+				String result="";
+
+				try{
+
+					result = response.getString("result");
+
+
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+
+
 
 				AppConstants.flag=0;
-				temp.remove(0);
-				
-				Log.e("DEBUG", "Failed Transaction left"+temp.size());
-				
-				deleteAndAddTransactions(temp);
-				if(temp.size()>0){
-					try {
-						uplaodTransaction(context);
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+
+				if(result.equals("true")){
+					temp.remove(0);
+					deleteAndAddTransactions(temp);
+
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Successfully uploaded");
+					mBuilder.setContentText("Done")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+
+
+					if(temp.size()>0){
+						try {
+							uplaodTransaction(context);
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
+
+					Log.e("DEBUG", "Failed Transaction left"+temp.size());
+
+
+				}else{
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Failed to uplaod");
+					mBuilder.setContentText("Please check the internet connection")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
 				}
+
+
+
+				Log.e("SUCCESS", response+"");	
+
 
 
 
@@ -197,6 +240,10 @@ public class NetworkReceiver extends BroadcastReceiver {
 			public void onStart() {
 
 				AppConstants.flag=1;
+				mBuilder
+				.setContentTitle("Uploading Failed transactions....")                  
+				.setSmallIcon(R.drawable.ic_launcher)
+				.setAutoCancel(true);
 			}
 
 
@@ -208,9 +255,25 @@ public class NetworkReceiver extends BroadcastReceiver {
 				// TODO Auto-generated method stub
 				AppConstants.flag=0;
 
-				Toast toast =Toast.makeText(context, "Something went wrong", Toast.LENGTH_LONG);
-				toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-				toast.show();
+				if(throwable.getCause() instanceof ConnectTimeoutException){
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Time out connection error");
+					mBuilder.setContentText("Your internet seems soo slow")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+				}else{
+
+
+
+
+					mBuilder.setAutoCancel(true);
+					mBuilder.setContentTitle("Failed to uplaod");
+					mBuilder.setContentText("Please check the internet connection")
+					// Removes the progress bar
+					.setProgress(0,0,false);
+					mNotifyManager.notify(0, mBuilder.build());
+				}
 
 				Log.e("FALIURE", errorResponse+"");
 
@@ -222,17 +285,17 @@ public class NetworkReceiver extends BroadcastReceiver {
 
 		});
 	}
-	
-	
-public ArrayList<HashMap<String, String>> getFailedTransactions(){
-		
-		
+
+
+	public ArrayList<HashMap<String, String>> getFailedTransactions(){
+
+
 		Type type = new TypeToken<ArrayList<HashMap<String, String>>>(){}.getType();
 		Gson gson = new Gson();
 
 		ArrayList<HashMap<String, String>> temp = new ArrayList<HashMap<String,String>>();
 
-		
+
 		String inspectionArray = mSharedPreferences.getString("failedtransactions", null);
 
 		if(inspectionArray!=null  ){
@@ -248,12 +311,12 @@ public ArrayList<HashMap<String, String>> getFailedTransactions(){
 
 	public void addTransactions(HashMap<String, String> temp){
 		Gson gson = new Gson();
-		
+
 
 		ArrayList<HashMap<String, String>> gettemp = getFailedTransactions();
 
 		gettemp.add(temp);
-		
+
 		if(gettemp.size()>0){
 			String a = gson.toJson(gettemp);
 			e.putString("failedtransactions", a);
@@ -267,13 +330,13 @@ public ArrayList<HashMap<String, String>> getFailedTransactions(){
 
 	public void deleteAndAddTransactions(ArrayList<HashMap<String, String>> temp){
 		Gson gson = new Gson();
-		
 
-			String a = gson.toJson(temp);
-			e.putString("failedtransactions", a);
-			e.apply();
-		
-			Log.e("DEBUG", "delected and Saved data.");
+
+		String a = gson.toJson(temp);
+		e.putString("failedtransactions", a);
+		e.apply();
+
+		Log.e("DEBUG", "delected and Saved data.");
 	}
 
 }

@@ -81,8 +81,9 @@ public class Cam extends Activity implements SurfaceHolder.Callback
 				capture.setVisibility(View.VISIBLE);
 
 				releaseCamera();
-				cam=Camera.open();
+				
 				try {
+					cam=Camera.open();
 					cam.setDisplayOrientation(90);
 					cam.setPreviewDisplay(hold);
 					//cam.startPreview();
@@ -123,8 +124,9 @@ public class Cam extends Activity implements SurfaceHolder.Callback
 		// TODO Auto-generated method stub
 
 		Log.e("DEBUG", "camera opening..");
-		cam=Camera.open();
+		
 		try {
+			cam=Camera.open();
 			cam.setDisplayOrientation(90);
 			cam.setPreviewDisplay(hold);
 			cam.startPreview();
@@ -133,7 +135,9 @@ public class Cam extends Activity implements SurfaceHolder.Callback
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			capture.setVisibility(View.INVISIBLE);
 			Log.e("DEBUG", "not opened..");
+			Toast.makeText(getApplicationContext(), "Failed to connect camera", Toast.LENGTH_LONG).show();
 		}
 
 
@@ -214,7 +218,7 @@ public class Cam extends Activity implements SurfaceHolder.Callback
 				filename = System.currentTimeMillis()+".jpg";
 
 				File file = new File(miDirs.toString(),filename);
-
+				filename = file.getAbsolutePath();
 
 				BitmapFactory.Options options=new BitmapFactory.Options();
 				options.inSampleSize = 8;
