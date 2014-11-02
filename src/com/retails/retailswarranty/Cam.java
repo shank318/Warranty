@@ -221,7 +221,7 @@ public class Cam extends Activity implements SurfaceHolder.Callback
 				filename = file.getAbsolutePath();
 
 				BitmapFactory.Options options=new BitmapFactory.Options();
-				options.inSampleSize = 8;
+				options.inSampleSize = 1;
 				options.inScaled=false;
 				Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length,options);
 

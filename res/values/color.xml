@@ -3,5 +3,8 @@
     <color name ="actionbar">#e51c23</color>
     <color name ="viewportbackground">#fff8e1</color>
     <color name ="buttonbackground">#e51c23</color>
+    <color name="viewfinder_mask">#60000000</color>
+    <color name="viewfinder_laser">#ffcc0000</color>
+    <color name="viewfinder_border">#ffafed44</color>
     
 </resources>

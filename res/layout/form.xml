@@ -31,8 +31,10 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginTop="20dp"
+        android:imeOptions="actionNext"
         android:background="@drawable/edittextbackground"
         android:ems="10"
+        android:singleLine="true"
         android:hint="Showroom Name"
         android:maxLines="1"
         android:padding="5dp" />
@@ -46,8 +48,10 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginTop="20dp"
+        android:imeOptions="actionNext"
         android:background="@drawable/edittextbackground"
         android:ems="10"
+        android:singleLine="true"
         android:hint="City"
         android:maxLines="1"
         android:padding="5dp" />
@@ -63,7 +67,9 @@
         android:layout_marginTop="20dp"
         android:background="@drawable/edittextbackground"
         android:ems="10"
+        android:singleLine="true"
         android:hint="Contact Person"
+        android:imeOptions="actionNext"
         android:maxLines="1"
         android:padding="5dp" />
 
@@ -78,6 +84,7 @@
         android:layout_marginTop="20dp"
         android:background="@drawable/edittextbackground"
         android:ems="10"
+        android:singleLine="true"
         android:hint="Contact No"
         android:inputType="number"
         android:maxLines="1"
